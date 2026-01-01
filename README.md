@@ -1,20 +1,332 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <h1>🌧️ מכ"ם גשם - אפליקציית מזג אוויר בזמן אמת</h1>
+  <p><strong>פרויקט גמר - מערכת תצוגת מכ"ם ולוויין לישראל</strong></p>
+  
+  ![React](https://img.shields.io/badge/React-19.2.3-blue?logo=react)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-blue?logo=typescript)
+  ![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-green?logo=leaflet)
+  ![Vite](https://img.shields.io/badge/Vite-6.2.0-purple?logo=vite)
 </div>
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+## 📋 תוכן עניינים
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ILaiJCDBHwjX8qv0-aN0bxeYHVQPG3c0
+- [סקירה כללית](#-סקירה-כללית)
+- [תכונות עיקריות](#-תכונות-עיקריות)
+- [ארכיטקטורה טכנית](#-ארכיטקטורה-טכנית)
+- [טכנולוגיות](#-טכנולוגיות)
+- [התקנה והרצה](#-התקנה-והרצה)
+- [מבנה הפרויקט](#-מבנה-הפרויקט)
+- [ממשקי API](#-ממשקי-api)
+- [צילומי מסך](#-צילומי-מסך)
+- [מסקנות](#-מסקנות)
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## 🎯 סקירה כללית
 
+**מכ"ם גשם** היא אפליקציית ווב מתקדמת המציגה נתוני מזג אוויר בזמן אמת עבור ישראל והסביבה. 
+האפליקציה משלבת נתוני מכ"ם, תמונות לוויין, ומידע מטאורולוגי מדויק, ומציעה חוויית משתמש אינטואיטיבית ומרהיבה חזותית.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 🎓 מטרות הפרויקט
+
+1. **זמינות מידע** - אספקת נתוני מזג אוויר מדויקים בזמן אמת
+2. **נגישות** - ממשק ידידותי ומותאם למובייל
+3. **תצוגה ויזואלית** - הצגת נתונים באמצעות מפות אינטראקטיביות
+4. **תחזיות** - הצגת תחזיות קצרות טווח (nowcast)
+
+---
+
+## ✨ תכונות עיקריות
+
+### 🗺️ תצוגת מכ"ם ולוויין
+- **מכ"ם גשם** - הצגת עוצמת משקעים בזמן אמת
+- **תמונות לוויין** - תצפית מלווין מטאורולוגי (אינפרא-אדום)
+- **אנימציה** - הצגת התפתחות מערכות מזג אוויר לאורך זמן
+- **תחזית nowcast** - חיזוי משקעים לשעות הקרובות
+
+### 🎨 עיצוב וממשק משתמש
+- **6 סכמות צבע** למכ"ם (כחול אוניברסלי, קלאסי, NEXRAD, ועוד)
+- **3 סגנונות מפה** (כהה, לוויין, טופוגרפי)
+- **ממשק RTL** מלא בעברית
+- **תמיכה במובייל** עם Safe Area Insets
+- **אנימציות חלקות** ומעברים ויזואליים
+
+### 🔍 חיפוש ומיקום
+- **חיפוש ערים** - מערכת חיפוש מתקדמת לערים בישראל
+- **מיקום אוטומטי** - זיהוי מיקום משתמש באמצעות GPS
+- **מידע מקומי** - הצגת מזג אוויר ספציפי לנקודה שנבחרה
+
+### ⚙️ בקרות וניהול
+- **נגן אנימציה** - השהיה, הפעלה, ומעבר בין פריימים
+- **מהירות הפעלה** - שליטה במהירות האנימציה
+- **שקיפות** - התאמת רמת השקיפות של שכבת המכ"ם
+- **עדכון אוטומטי** - רענון נתונים כל 3 דקות
+
+---
+
+## 🏗️ ארכיטקטורה טכנית
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Client Application                        │
+│                   (React + TypeScript)                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │   App.tsx   │  │  RadarMap    │  │   Legend     │      │
+│  │  (Main UI)  │─▶│  (Map View)  │  │  (Color Key) │      │
+│  └─────────────┘  └──────────────┘  └──────────────┘      │
+│         │                                                    │
+│         ▼                                                    │
+│  ┌─────────────────────────────────────┐                   │
+│  │    Weather Service (API Layer)      │                   │
+│  └─────────────────────────────────────┘                   │
+└─────────────────┬───────────────────────┬──────────────────┘
+                  │                       │
+                  ▼                       ▼
+         ┌──────────────────┐   ┌─────────────────┐
+         │  RainViewer API  │   │  OpenStreetMap  │
+         │  (Radar/Satellite)│   │   (Nominatim)   │
+         └──────────────────┘   └─────────────────┘
+                  │                       
+                  ▼                       
+         ┌──────────────────┐            
+         │  Open-Meteo API  │            
+         │  (Weather Data)  │            
+         └──────────────────┘            
+```
+
+### זרימת נתונים
+
+```
+משתמש מבקר באתר
+       │
+       ▼
+   טעינת אפליקציה
+       │
+       ├─▶ קריאה ל-RainViewer API ◀────┐
+       │   (נתוני מכ"ם ולוויין)         │
+       │                              │
+       ├─▶ הצגה על מפה (Leaflet)        │
+       │                              │
+       ▼                              │
+   אינטראקציה של משתמש           עדכון כל 3 דקות
+       │
+       ├─▶ חיפוש עיר
+       │   └─▶ Nominatim API
+       │
+       ├─▶ בחירת נקודה על המפה
+       │   └─▶ Open-Meteo API
+       │       └─▶ הצגת מזג אוויר מקומי
+       │
+       └─▶ שינוי הגדרות תצוגה
+           (סכמת צבע, סגנון מפה, שקיפות)
+```
+
+---
+
+## 🛠️ טכנולוגיות
+
+### Frontend Framework
+- **React 19.2.3** - ספריית UI מודרנית עם Hooks
+- **TypeScript 5.8.2** - Typed JavaScript לקוד בטוח יותר
+- **Vite 6.2.0** - כלי build מהיר ומודרני
+
+### Mapping & Visualization
+- **Leaflet 1.9.4** - ספריית מפות אינטראקטיבית
+- **React-Leaflet 5.0.0** - אינטגרציה של Leaflet עם React
+- **Lucide React** - ספריית אייקונים מודרנית
+
+### APIs & Services
+- **RainViewer API** - נתוני מכ"ם ולוויין גלובליים
+- **OpenStreetMap Nominatim** - שירות geocoding וחיפוש מיקומים
+- **Open-Meteo API** - נתוני מזג אוויר מפורטים
+
+### Styling
+- **Tailwind CSS** (via inline classes) - עיצוב utility-first
+- **CSS Custom Properties** - משתנים לתמיכה ב-Safe Areas
+
+---
+
+## 🚀 התקנה והרצה
+
+### דרישות מקדימות
+
+- **Node.js** 18.0.0 ומעלה
+- **npm** או **yarn**
+- דפדפן מודרני (Chrome, Firefox, Safari, Edge)
+
+### שלבי התקנה
+
+1. **שכפול הפרויקט**
+   ```bash
+   git clone https://github.com/yedidyakrimo/weather-radar-app.git
+   cd weather-radar-app
+   ```
+
+2. **התקנת תלויות**
+   ```bash
+   npm install
+   ```
+
+3. **הרצת שרת פיתוח**
+   ```bash
+   npm run dev
+   ```
+
+4. **פתיחת הדפדפן**
+   - גש אל `http://localhost:5173`
+
+### בניית גרסת ייצור
+
+```bash
+npm run build
+```
+
+הקבצים הסטטיים ייווצרו בתיקייה `dist/`
+
+### תצוגה מקדימה של גרסת ייצור
+
+```bash
+npm run preview
+```
+
+---
+
+## 📁 מבנה הפרויקט
+
+```
+weather-radar-app/
+├── components/
+│   ├── RadarMap.tsx        # רכיב מפת מכ"ם
+│   └── Legend.tsx          # רכיב מקרא צבעים
+├── services/
+│   └── weatherService.ts   # שירותי API
+├── App.tsx                 # רכיב ראשי
+├── types.ts                # הגדרות TypeScript
+├── index.tsx               # נקודת כניסה
+├── index.html              # HTML בסיס
+├── vite.config.ts          # הגדרות Vite
+├── tsconfig.json           # הגדרות TypeScript
+└── package.json            # תלויות פרויקט
+```
+
+### תיאור קבצים עיקריים
+
+- **App.tsx** - ניהול state, לוגיקת אפליקציה, UI ראשי
+- **RadarMap.tsx** - רכיב מפה עם Leaflet, הצגת שכבות מכ"ם/לוויין
+- **Legend.tsx** - מקרא צבעים למכ"ם גשם
+- **weatherService.ts** - פונקציות לקריאת APIs חיצוניים
+- **types.ts** - interfaces ו-types של TypeScript
+
+---
+
+## 🔌 ממשקי API
+
+### 1. RainViewer API
+**מטרה**: נתוני מכ"ם ולוויין גלובליים
+
+```typescript
+GET https://api.rainviewer.com/public/weather-maps.json
+
+Response:
+{
+  version: string;
+  generated: number;
+  host: string;
+  radar: {
+    past: RadarFrame[];
+    nowcast: RadarFrame[];
+  };
+  satellite: {
+    infrared: RadarFrame[];
+  };
+}
+```
+
+### 2. Nominatim (OpenStreetMap)
+**מטרה**: חיפוש מיקומים ו-geocoding
+
+```typescript
+GET https://nominatim.openstreetmap.org/search
+  ?q={query}
+  &format=json
+  &limit=5
+  &countrycodes=il
+```
+
+### 3. Open-Meteo API
+**מטרה**: נתוני מזג אוויר נוכחיים
+
+```typescript
+GET https://api.open-meteo.com/v1/forecast
+  ?latitude={lat}
+  &longitude={lon}
+  &current_weather=true
+  &hourly=precipitation
+```
+
+---
+
+## 📸 צילומי מסך
+
+*(יש להוסיף צילומי מסך בפועל)*
+
+### תצוגת מכ"ם
+- הצגת עוצמת משקעים בצבעים
+- אנימציה חלקה של התפתחות מערכות
+
+### תצוגת לוויין
+- תמונות אינפרא-אדום מלוויין מטאורולוגי
+- זיהוי מערכות עננים
+
+### פאנל מזג אוויר מקומי
+- טמפרטורה נוכחית
+- מהירות רוח
+- כמות משקעים
+
+---
+
+## 🎯 מסקנות
+
+פרויקט **מכ"ם גשם** מדגים יישום מוצלח של טכנולוגיות web מודרניות ליצירת אפליקציית מזג אוויר מתקדמת:
+
+### הישגים טכניים
+✅ אינטגרציה מוצלחת של 3 APIs חיצוניים  
+✅ ביצועים מעולים עם Vite ו-React 19  
+✅ ממשק משתמש responsive ונגיש  
+✅ קוד מודולרי ומתוחזק עם TypeScript  
+✅ תמיכה מלאה בעברית (RTL)  
+
+### אתגרים שנפתרו
+🔧 סנכרון בין מספר מקורות נתונים  
+🔧 ביצועי אנימציה חלקים עם מפות  
+🔧 תמיכה במגוון מכשירים (desktop/mobile)  
+🔧 ניהול state מורכב ב-React  
+
+### פיתוחים עתידיים
+🚀 הוספת התראות מזג אוויר  
+🚀 תמיכה במיקומים מחוץ לישראל  
+🚀 שמירת מיקומים מועדפים  
+🚀 גרפים היסטוריים של נתוני מזג אוויר  
+🚀 שיתוף מידע ברשתות חברתיות  
+
+---
+
+## 👨‍💻 מפתח
+
+**Yedidya Krimo**
+
+---
+
+## 📄 רישיון
+
+פרויקט זה פותח למטרות לימודיות ואישיות.
+
+---
+
+<div align="center">
+  <p><strong>נבנה עם ❤️ בישראל</strong></p>
+  <p>© 2026 מכ"ם גשם - כל הזכויות שמורות</p>
+</div>
